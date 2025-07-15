@@ -19,7 +19,7 @@ jobs:
           color: "15844367"
           username: "BCC Changelog"
           avatar_url: "https://bcc-scripts.com/logo.png"
-          content: "# BCC-shops ${{ env.RELEASE_VERSION }} \n\n https://github.com/BryceCanyonCounty/bcc-shop"
+          content: "# BCC-shops ${{ env.RELEASE_VERSION }} \n\n https://github.com/BryceCanyonCounty/bcc-shops"
           footer_timestamp: false
           max_description: "4096"
           reduce_headings: true
