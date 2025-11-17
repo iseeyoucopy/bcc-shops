@@ -11,6 +11,7 @@ CreateThread(function()
             inv_limit INT(30) NOT NULL DEFAULT 0,
             ledger DOUBLE(11,2) NOT NULL DEFAULT 0.00,
             blip_hash VARCHAR(255) NOT NULL DEFAULT 'none',
+            show_blip TINYINT(1) NOT NULL DEFAULT 1,
             is_npc_shop TINYINT(1) NOT NULL DEFAULT 0,
             pos_x DOUBLE NOT NULL,
             pos_y DOUBLE NOT NULL,
@@ -19,6 +20,10 @@ CreateThread(function()
             npc_model VARCHAR(255),
             PRIMARY KEY (shop_id)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+    ]])
+    MySQL.query.await([[
+        ALTER TABLE bcc_shops
+        ADD COLUMN IF NOT EXISTS show_blip TINYINT(1) NOT NULL DEFAULT 1 AFTER blip_hash;
     ]])
 
     -- bcc_shop_access
