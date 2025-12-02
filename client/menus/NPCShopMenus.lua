@@ -107,7 +107,7 @@ function OpenNPCAddFromPlayerInventory(shopName)
 
     -- ITEMS
     for _, item in ipairs(inventory) do
-        local itemName                    = (item.item_name or "unknown_item"):lower()
+        local itemName                    = (item.item_name or "unknown_item")
         local label                       = item.label or item.item_label or _U('unknown')
         local count                       = tonumber(item.count or item.item_quantity or 0) or 0
         local imgPath                     = 'nui://vorp_inventory/html/img/items/' .. itemName .. '.png'
@@ -146,7 +146,7 @@ function OpenNPCAddFromPlayerInventory(shopName)
 
     -- WEAPONS
     for _, weapon in ipairs(weapons) do
-        local wName                       = (weapon.name or weapon.weapon_name or "unknown_weapon"):lower()
+        local wName                       = (weapon.name or weapon.weapon_name or "unknown_weapon")
         local wLabel                      = weapon.custom_label or weapon.label or weapon.weapon_label or _U('unknown')
         local wSerial                     = weapon.serial_number or weapon.serial or "N/A"
         local wId                         = weapon.weaponId or weapon.weapon_id or weapon.id
@@ -244,11 +244,9 @@ function OpenNPCAddDetailMenu(shopName, entry)
         for _, cat in ipairs(categories) do
             categoryOptions[#categoryOptions + 1] = {
                 text = cat.text or cat.label or "unknown",
-                value = tostring(cat
-                    .value)
+                value = tostring(cat.value)
             }
         end
-        selectedCategoryId = tonumber(categoryOptions[1].value)
     end
 
     local buyPrice, sellPrice, levelReq = 0, 0, 0
@@ -306,7 +304,7 @@ function OpenNPCAddDetailMenu(shopName, entry)
             label   = _U('category'),
             slot    = "content",
             options = categoryOptions,
-            default = tostring(selectedCategoryId)
+            default = selectedCategoryId and tostring(selectedCategoryId) or nil
         }, function(d) selectedCategoryId = tonumber(d.value) end)
     end
 
@@ -359,6 +357,12 @@ function OpenNPCAddDetailMenu(shopName, entry)
             return Notify(_U('missingFields'), "error", 4000)
         end
 
+        local catId = tonumber(selectedCategoryId)
+        if not catId or catId <= 0 then
+            Notify(_U('categoryRequired') or "Please select a category first", "error", 4000)
+            return
+        end
+
         if isWeapon then
             local weaponId = entry.weaponId or entry.weapon_id or entry.id
             if not weaponId then
@@ -398,7 +402,7 @@ function OpenNPCAddDetailMenu(shopName, entry)
                 itemName      = entry.item_name,
                 buyPrice      = buyPrice,
                 sellPrice     = sellPrice,
-                category_id   = selectedCategoryId,
+                category_id   = catId,
                 levelRequired = levelReq,
                 buy_quantity  = buyQty,
                 sell_quantity = sellQty,
@@ -446,7 +450,7 @@ function OpenAddNPCItemMenuInternal(shopName)
 
     local itemName, itemLabel = "", ""
     local itemBuyPrice, itemSellPrice, itemBuyStock, itemSellStock = 0, 0, 0, 0
-    local selectedCategoryId, itemLevel = "", 0
+    local selectedCategoryId, itemLevel = nil, 0
 
     -- Fetch categories from server
     local categories = BccUtils.RPC:CallAsync("bcc-shops:GetShopCategories")
@@ -456,7 +460,6 @@ function OpenAddNPCItemMenuInternal(shopName)
         for _, cat in ipairs(categories) do
             table.insert(categoryOptions, { text = cat.text or cat.label or "unknown", value = tostring(cat.value) })
         end
-        selectedCategoryId = categoryOptions[1].value or "1" -- default to first category
     else
         Notify(_U("noCategoriesFound"), "error", 4000)
         return
@@ -519,7 +522,7 @@ function OpenAddNPCItemMenuInternal(shopName)
         label = _U('category'),
         slot = "content",
         options = categoryOptions,
-        default = selectedCategoryId
+        default = selectedCategoryId and tostring(selectedCategoryId) or nil
     }, function(data)
         selectedCategoryId = data.value
         devPrint("Selected category_id: " .. selectedCategoryId)
@@ -544,6 +547,12 @@ function OpenAddNPCItemMenuInternal(shopName)
             soundset = "RDRO_Character_Creator_Sounds"
         }
     }, function()
+        local catId = tonumber(selectedCategoryId)
+        if not catId or catId <= 0 then
+            Notify(_U('categoryRequired') or "Please select a category first", "error", 4000)
+            return
+        end
+
         if itemName ~= "" and itemLabel ~= "" and itemBuyPrice > 0 then
             BccUtils.RPC:Call("bcc-shops:AddItemNPCShop", {
                 shopName      = shopName,
@@ -552,7 +561,7 @@ function OpenAddNPCItemMenuInternal(shopName)
                 quantity      = math.max(itemBuyStock, itemSellStock),
                 buyPrice      = itemBuyPrice,
                 sellPrice     = itemSellPrice,
-                category_id   = tonumber(selectedCategoryId),
+                category_id   = catId,
                 levelRequired = itemLevel,
                 buy_quantity  = itemBuyStock,
                 sell_quantity = itemSellStock,
@@ -617,7 +626,7 @@ function OpenEditNPCShopMenu(shopName)
             local displayName = row.item_label or row.weapon_label or row.item_name or row.weapon_name or "unknown"
 
             -- keep image key stable off the internal name
-            local imageKey    = (row.item_name or row.weapon_name):lower()
+            local imageKey    = (row.item_name or row.weapon_name)
             local img         = "nui://vorp_inventory/html/img/items/" .. imageKey .. ".png"
 
             idx               = idx + 1

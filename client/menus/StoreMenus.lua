@@ -91,7 +91,7 @@ function OpenEditItemMenu(shopName)
         for _, row in ipairs(result or {}) do
             -- Expecting rows to contain either item_* or weapon_* fields plus pricing/stock
             local displayName = row.item_label or row.weapon_label or row.item_name or row.weapon_name or _U('unknown')
-            local internal    = (row.item_name or row.weapon_name or "unknown"):lower()
+            local internal    = (row.item_name or row.weapon_name or "unknown")
             local imgPath     = "nui://vorp_inventory/html/img/items/" .. internal .. ".png"
 
             idx               = idx + 1
@@ -306,9 +306,8 @@ function OpenEditPlayerItemMenu(shopName, item)
         -- sanitize inputs
         itemBuyPrice       = tonumber(itemBuyPrice) or 0
         itemSellPrice      = tonumber(itemSellPrice) or 0
-
-        -- normalize key if your Config uses lowercase keys (recommended)
-        local key          = (item.item_name or ""):lower()
+        
+        local key          = (item.item_name or "")
 
         local maxBuyPrice  = ConfigItems.MaxBuyPrice and ConfigItems.MaxBuyPrice[key] or nil
         local maxSellPrice = ConfigItems.MaxSellPrice and ConfigItems.MaxSellPrice[key] or nil

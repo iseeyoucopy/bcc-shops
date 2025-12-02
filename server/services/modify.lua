@@ -855,6 +855,7 @@ BccUtils.RPC:Register("bcc-shops:AddItemNPCShop", function(params, cb, src)
 
     if not categoryId or categoryId <= 0 then
         devPrint("[ERROR] Invalid category_id: " .. tostring(params.category_id))
+        NotifyClient(src, _U('categoryRequired') or "Please select a category", "error")
         return cb(false)
     end
 
@@ -866,6 +867,7 @@ BccUtils.RPC:Register("bcc-shops:AddItemNPCShop", function(params, cb, src)
 
     if not catCheck then
         devPrint("[ERROR] Category ID not found in database: " .. categoryId)
+        NotifyClient(src, _U('categoryRequired') or "Please select a category", "error")
         return cb(false)
     end
 
@@ -911,7 +913,8 @@ BccUtils.RPC:Register("bcc-shops:AddItemNPCShop", function(params, cb, src)
         })
 
         if insertId then
-            devPrint("[INSERT] Added item '" .. itemName .. "' to shop_id " .. shop_id .. " with category_id " .. categoryId)
+            local catLog = categoryId or "NULL"
+            devPrint("[INSERT] Added item '" .. itemName .. "' to shop_id " .. shop_id .. " with category_id " .. catLog)
             return cb(true)
         else
             devPrint("[ERROR] Failed to insert new item: " .. itemName)
@@ -926,7 +929,11 @@ BccUtils.RPC:Register("bcc-shops:AddBuyItem", function(params, cb, source)
     local itemName = params.itemName
     local quantity = tonumber(params.quantity)
     local buyPrice = tonumber(params.buyPrice)
-    local categoryId = tonumber(params.category_id) or 0
+    local categoryId = tonumber(params.category_id)
+    if not categoryId or categoryId <= 0 then
+        NotifyClient(source, _U('categoryRequired') or "Please select a category", "error")
+        return cb(false)
+    end
     local levelRequired = tonumber(params.levelRequired) or 0
     local currencyType = "cash"
     local sellPrice = 0
@@ -955,6 +962,14 @@ BccUtils.RPC:Register("bcc-shops:AddBuyItem", function(params, cb, source)
 
     exports.vorp_inventory:getItem(source, itemName, function(playerItem)
         if playerItem and playerItem.count >= quantity then
+            local hasDurability = playerItem.usages
+                or playerItem.durability
+                or (playerItem.metadata and (playerItem.metadata.usages or playerItem.metadata.durability))
+            if hasDurability then
+                NotifyClient(source, "Cannot add items with durability/usages to shops", "error")
+                return cb(false)
+            end
+
             devPrint("Player has enough items")
 
             isWeapon = playerItem.is_weapon or 0
@@ -974,8 +989,8 @@ BccUtils.RPC:Register("bcc-shops:AddBuyItem", function(params, cb, source)
                 if rowsChanged and rowsChanged > 0 then
                     exports.vorp_inventory:subItem(source, itemName, quantity, {}, function(success)
                         if success then
-                            devPrint("Item quantity updated and removed from inventory")
-                            NotifyClient(source, "Item quantity updated in shop", "success")
+                devPrint("Item quantity updated and removed from inventory")
+                NotifyClient(source, "Item quantity updated in shop", "success")
 
                             -- Send Discord webhook notifications
                             local message = {
@@ -1091,6 +1106,12 @@ BccUtils.RPC:Register("bcc-shops:AddWeaponItem", function(params, cb, src)
         return
     end
 
+    if not categoryId or categoryId <= 0 then
+        NotifyClient(src, _U('categoryRequired') or "Please select a category", "error")
+        cb(false)
+        return
+    end
+
     local shopResult = MySQL.query.await('SELECT shop_id, webhook_link, shop_name FROM bcc_shops WHERE shop_name = ?', { shopName })
     if not shopResult or not shopResult[1] then
         devPrint("Shop not found: " .. tostring(shopName))
@@ -1182,7 +1203,11 @@ BccUtils.RPC:Register("bcc-shops:AddSellItem", function(params, cb, source)
     local itemName = params.itemName
     local quantity = tonumber(params.quantity)
     local sellPrice = tonumber(params.sellPrice)
-    local categoryId = tonumber(params.category_id) or 0
+    local categoryId = tonumber(params.category_id)
+    if not categoryId or categoryId <= 0 then
+        NotifyClient(source, _U('categoryRequired') or "Please select a category", "error")
+        return cb(false)
+    end
     local levelRequired = tonumber(params.levelRequired) or 0
     local currencyType = "cash"
     local buyPrice = 0
@@ -1212,6 +1237,14 @@ BccUtils.RPC:Register("bcc-shops:AddSellItem", function(params, cb, source)
 
     exports.vorp_inventory:getItem(source, itemName, function(playerItem)
         if playerItem then
+            local hasDurability = playerItem.usages
+                or playerItem.durability
+                or (playerItem.metadata and (playerItem.metadata.usages or playerItem.metadata.durability))
+            if hasDurability then
+                NotifyClient(source, "Cannot add items with durability/usages to shops", "error")
+                return cb(false)
+            end
+
             isWeapon = playerItem.is_weapon or 0
 
             local existingItem = MySQL.query.await(

@@ -74,7 +74,7 @@ function SellMenu(shopName, returnPage)
                 visibleIndex = visibleIndex + 1
                 indexMap[visibleIndex] = item
 
-                local imgName = (item.name or ""):lower()
+                local imgName = (item.name or "")
                 local imgPath = "nui://vorp_inventory/html/img/items/" .. imgName .. ".png"
 
                 table.insert(imageBoxItems, {

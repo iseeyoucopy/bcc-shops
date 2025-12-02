@@ -13,18 +13,21 @@ CreateThread(function()
     end
 end)
 
--- Register and Start NPC Loop via RPC handshake
-CreateThread(function()
-    Wait(3000)
-    devPrint("🚀 Requesting to start NPC purchase loop from client...")
-    local started = BccUtils.RPC:CallAsync("bcc-shops:StartNpcPurchases", {})
-    if started then
-        devPrint("NPC purchase loop approved. Starting loop.")
-        StartNpcPurchaseLoop()
-    else
-        devPrint("NPC loop already running or disabled by server.")
-    end
-end)
+-- Client-side NPC meet/purchase loop disabled.
+-- Keep behind devMode so it never runs in production.
+if Config.devMode then
+    CreateThread(function()
+        Wait(3000)
+        devPrint("🚀 Requesting to start NPC purchase loop from client (dev mode)...")
+        local started = BccUtils.RPC:CallAsync("bcc-shops:StartNpcPurchases", {})
+        if started then
+            devPrint("NPC purchase loop approved. Starting loop (dev mode).")
+            StartNpcPurchaseLoop()
+        else
+            devPrint("NPC loop already running or disabled by server.")
+        end
+    end)
+end
 
 -- Main NPC Purchase Logic Loop
 function StartNpcPurchaseLoop()
@@ -109,4 +112,3 @@ function StartNpcPurchaseLoop()
         end
     end)
 end
-
