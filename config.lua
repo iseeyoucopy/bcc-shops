@@ -5,7 +5,7 @@ Config = {
     },
     devMode = false,
     ManageShopsCommand = "manageStores", 
-    Webhook ="",
+    Webhook = "",
     WebhookTitle = 'BCC-Shops',
     WebhookAvatar = '',
 
@@ -37,8 +37,9 @@ Config = {
 
     NPC = {
         npcBuyFromPlayerShop = true,
-        npcMeetEnabled = true,
         purchaseInterval = 900000,
+
+        -- thes next configs are unused in resource on this version, next version will be implemented new function with these values
         npcModels = {
             "g_m_m_unibanditos_01",
             "ge_delloboparty_females_01",

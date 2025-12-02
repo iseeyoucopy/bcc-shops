@@ -56,7 +56,7 @@ function BuyMenu(shopName, returnPage)
         -- build imagebox list
         local imageBoxItems = {}
         for index, item in ipairs(entries) do
-            local imgName = item.name:lower()
+            local imgName = item.name
             local imgPath = "nui://vorp_inventory/html/img/items/" .. imgName .. ".png"
             local isUnavailable = not item.price or item.price <= 0
 

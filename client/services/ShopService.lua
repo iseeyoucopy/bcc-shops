@@ -17,45 +17,22 @@ function CreateBlips()
 end
 
 function CreateNPCs()
-    local function createNPCForShop(shop)
-        if shop.npc_model and shop.npc_model ~= "" then
-            --devPrint("Creating NPC for shop: " .. tostring(shop.shop_name))
-            --devPrint("NPC Data:")
-            --devPrint("  Model: " .. tostring(shop.npc_model))
-            --devPrint("  Position: x=" .. tostring(shop.pos_x) .. ", y=" .. tostring(shop.pos_y) .. ", z=" .. tostring(shop.pos_z))
-            ---devPrint("  Heading: " .. tostring(shop.pos_heading))
-            --devPrint("  npc_model: " .. tostring(shop.npc_model))
-
-            local ped = BccUtils.Ped:Create(
-                shop.npc_model,
-                shop.pos_x,
-                shop.pos_y,
-                shop.pos_z - 1,
-                shop.pos_heading or 0.0,
-                'world',
-                false
-            )
-
-            if ped then
-                CreatedNPC[#CreatedNPC + 1] = ped
-                ped:Freeze()
-                ped:SetHeading(shop.pos_heading or 0.0)
-                ped:Invincible()
-                ped:SetBlockingOfNonTemporaryEvents(true)
-            else
-                devPrint("Failed to create NPC for shop: " .. tostring(shop.shop_name))
-            end
-        else
-            devPrint("Skipping shop: " .. tostring(shop.shop_name) .. " — Missing or empty npc_model")
-        end
-    end
-
     for _, shop in ipairs(npcStores) do
-        createNPCForShop(shop)
+        shopPed = BccUtils.Ped:Create(shop.npc_model, shop.pos_x, shop.pos_y, shop.pos_z - 1, 0, 'world', false)
+        CreatedNPC[#CreatedNPC + 1] = shopPed
+        shopPed:Freeze()
+        shopPed:SetHeading(shop.pos_heading)
+        shopPed:Invincible()
+        shopPed:SetBlockingOfNonTemporaryEvents(true)
     end
 
     for _, shop in ipairs(playerStores) do
-        createNPCForShop(shop)
+        shopPed = BccUtils.Ped:Create(shop.npc_model, shop.pos_x, shop.pos_y, shop.pos_z - 1, 0, 'world', false)
+        CreatedNPC[#CreatedNPC + 1] = shopPed
+        shopPed:Freeze()
+        shopPed:SetHeading(shop.pos_heading)
+        shopPed:Invincible()
+        shopPed:SetBlockingOfNonTemporaryEvents(true)
     end
 end
 

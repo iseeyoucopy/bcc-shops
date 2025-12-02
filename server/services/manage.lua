@@ -396,14 +396,16 @@ end)
 BccUtils.RPC:Register("bcc-shops:CreateCategory", function(params, cb, src)
     if not params or not params.name then return cb(false) end
 
-    local result = MySQL.insert.await("INSERT INTO bcc_shop_categories (name) VALUES (?)", { params.name })
+    local label   = (params.label and params.label:match("%S")) and params.label or params.name
+    local result = MySQL.insert.await("INSERT INTO bcc_shop_categories (name, label) VALUES (?, ?)", { params.name, label })
     cb(result ~= nil)
 end)
 
 BccUtils.RPC:Register("bcc-shops:EditCategory", function(params, cb, src)
     if not params or not params.id or not params.name then return cb(false) end
 
-    local updated = MySQL.update.await("UPDATE bcc_shop_categories SET name = ? WHERE id = ?", { params.name, params.id })
+    local label   = (params.label and params.label:match("%S")) and params.label or params.name
+    local updated = MySQL.update.await("UPDATE bcc_shop_categories SET name = ?, label = ? WHERE id = ?", { params.name, label, params.id })
     cb(updated and updated > 0)
 end)
 
@@ -451,7 +453,7 @@ end)
 
 
 BccUtils.RPC:Register("bcc-shops:GetAllCategories", function(_, cb, src)
-    local categories = MySQL.query.await("SELECT id, name, label FROM bcc_shop_categories")
+    local categories = MySQL.query.await("SELECT id, name, label FROM bcc_shop_categories ORDER BY label ASC")
     cb(categories or {})
 end)
 

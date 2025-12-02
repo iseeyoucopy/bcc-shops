@@ -214,13 +214,14 @@ end)
 
 BccUtils.RPC:Register("bcc-shops:GetShopCategories", function(_, cb)
     local result = MySQL.query.await([[
-        SELECT id, label FROM bcc_shop_categories ORDER BY label ASC
+        SELECT id, name, label FROM bcc_shop_categories ORDER BY label ASC
     ]])
 
     local categories = {}
     for _, row in ipairs(result or {}) do
+        local display = (row.label and row.label ~= "" and row.label) or row.name
         table.insert(categories, {
-            text = row.label,
+            text = display,
             value = tostring(row.id) -- send id as string for dropdown consistency
         })
     end
@@ -256,7 +257,8 @@ BccUtils.RPC:Register("bcc-shops:GetShopItems", function(params, cb, src)
 
     for _, row in ipairs(itemRows or {}) do
         local categoryId = row.category_id or 0
-        result.items[categoryId] = result.items[categoryId] or { _label = row.category_label or _U("shop_no_category") }
+        local catLabel = (row.category_label and row.category_label ~= "" and row.category_label) or row.category_name or _U("shop_no_category")
+        result.items[categoryId] = result.items[categoryId] or { _label = catLabel }
         table.insert(result.items[categoryId], {
             id            = row.item_id,
             label         = row.item_label,
@@ -285,7 +287,8 @@ BccUtils.RPC:Register("bcc-shops:GetShopItems", function(params, cb, src)
 
     for _, row in ipairs(weaponRows or {}) do
         local categoryId = row.category_id or 0
-        result.weapons[categoryId] = result.weapons[categoryId] or { _label = row.category_label or _U("shop_no_category") }
+        local catLabel = (row.category_label and row.category_label ~= "" and row.category_label) or row.category_name or _U("shop_no_category")
+        result.weapons[categoryId] = result.weapons[categoryId] or { _label = catLabel }
         table.insert(result.weapons[categoryId], {
             id            = row.weapon_id,
             label         = row.weapon_label,

@@ -549,7 +549,9 @@ function OpenCreateCategoryMenu()
         slot = "header"
     })
 
-    local newName = ""
+    local newName   = ""
+    local newLabel  = ""
+
     Pages.createCatPage:RegisterElement('input', {
         label = _U('categoryName'),
         slot = "content",
@@ -557,6 +559,15 @@ function OpenCreateCategoryMenu()
         placeholder = "Enter category name..."
     }, function(data)
         newName = data.value
+    end)
+
+    Pages.createCatPage:RegisterElement('input', {
+        label = _U('categoryLabel'),
+        slot = "content",
+        type = "text",
+        placeholder = "Enter category label..."
+    }, function(data)
+        newLabel = data.value
     end)
 
     Pages.createCatPage:RegisterElement('line', {
@@ -574,12 +585,13 @@ function OpenCreateCategoryMenu()
         }
     }, function()
         if newName and newName:len() > 0 then
-            BccUtils.RPC:Call("bcc-shops:CreateCategory", { name = newName }, function(success)
+            local labelToSave = (newLabel and newLabel:match("%S")) and newLabel or newName
+            BccUtils.RPC:Call("bcc-shops:CreateCategory", { name = newName, label = labelToSave }, function(success)
                 if success then
                     Notify(_U("categoryCreatedSuccess"), "success", 4000)
                     Pages.CategoryPage:RouteTo()
                 else
-                    Notify(_U("categoryCreateFailed"), "error", 4000)
+                    Notify(_U("categoryCreatedFail"), "error", 4000)
                 end
             end)
         end
@@ -615,8 +627,9 @@ function OpenEditCategoryMenu()
     local categories = BccUtils.RPC:CallAsync("bcc-shops:GetAllCategories", {})
 
     for _, cat in ipairs(categories) do
+        local displayLabel = (cat.label and cat.label ~= "" and cat.label) or cat.name or _U("unknownCategory")
         Pages.editCatPage:RegisterElement('button', {
-            label = cat.label,
+            label = displayLabel,
             slot = "content",
             style = {},
             sound = {
@@ -629,13 +642,23 @@ function OpenEditCategoryMenu()
                 value = _U('renameCategory'),
                 slot = "header"
             })
-            local newLabel = cat.label
+            local newName  = cat.name
+            local newLabel = (cat.label and cat.label ~= "" and cat.label) or cat.name
 
             renamePage:RegisterElement('input', {
                 label = _U('categoryName'),
                 slot = "content",
                 type = "text",
-                default = cat.label
+                default = cat.name
+            }, function(data)
+                newName = data.value
+            end)
+
+            renamePage:RegisterElement('input', {
+                label = _U('categoryLabel'),
+                slot = "content",
+                type = "text",
+                default = (cat.label and cat.label ~= "" and cat.label) or cat.name
             }, function(data)
                 newLabel = data.value
             end)
@@ -654,11 +677,12 @@ function OpenEditCategoryMenu()
             }, function()
                 BccUtils.RPC:Call("bcc-shops:EditCategory", {
                     id = cat.id,
-                    name = newLabel
+                    name = newName,
+                    label = (newLabel and newLabel:match("%S")) and newLabel or newName
                 }, function(success)
                     if success then
                         Pages.editCatPage:RouteTo()
-                        Notify(_U("ccategoryUpdatedSuccess"), "success", 4000)
+                        Notify(_U("categoryUpdatedSuccess"), "success", 4000)
                     else
                         Notify(_U("categoryUpdatedFail"), "error", 4000)
                     end
@@ -849,7 +873,7 @@ function OpenDeleteCategoryMenu()
 
     for _, cat in ipairs(categories) do
         deleteCatPage:RegisterElement('button', {
-            label = cat.name,
+            label = (cat.label and cat.label ~= "" and cat.label) or cat.name or _U("unknownCategory"),
             slot = "content",
             style = {},
             sound = {

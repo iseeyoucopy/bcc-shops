@@ -1203,7 +1203,7 @@ function OpenPlayerInventoryMenu(shopName, inventory, weapons)
 
     -- Inventory items
     for _, item in ipairs(inventory or {}) do
-        local itemName    = (item.item_name or "unknown_item"):lower()
+        local itemName    = (item.item_name or "unknown_item")
         local label       = item.label or _U('unknown')
         local count       = item.count or 0
         local imgPath     = 'nui://vorp_inventory/html/img/items/' .. itemName .. '.png'
@@ -1234,7 +1234,7 @@ function OpenPlayerInventoryMenu(shopName, inventory, weapons)
 
     -- Weapons
     for _, weapon in ipairs(weapons or {}) do
-        local itemName    = (weapon.name or "unknown_weapon"):lower()
+        local itemName    = (weapon.name or "unknown_weapon")
         local label       = weapon.custom_label or weapon.label or _U('unknown')
         local serial      = weapon.serial_number or "N/A"
         local imgPath     = 'nui://vorp_inventory/html/img/items/' .. itemName .. '.png'
@@ -1349,7 +1349,7 @@ function OpenAddPlayerItemDetailMenuWithDetails(shopName, item, actionType)
     local itemLabel          = item.label or _U("unknownItem")
     local inputPrice         = ((actionType == 'buy') and item.buy_price or item.sell_price) or 0
     local inputQuantity      = 1
-    local selectedCategoryId = tostring(item.category_id or "")
+    local selectedCategoryId = item.category_id and tostring(item.category_id) or nil
 
     itemDetailPage:RegisterElement('header', { value = itemLabel, slot = "header" })
     itemDetailPage:RegisterElement('line', { slot = "header" })
@@ -1438,6 +1438,12 @@ end
             return
         end
 
+        local catId = tonumber(selectedCategoryId)
+        if not catId or catId <= 0 then
+            Notify(_U('categoryRequired') or "Please select a category first", "error", 4000)
+            return
+        end
+
         -- pick the right cap table based on action
         local capsTable
         if actionType == 'buy' then
@@ -1462,7 +1468,7 @@ end
                 buyPrice      = inputPrice,
                 sellPrice     = 0,
                 currencyType  = "cash",
-                category      = tonumber(selectedCategoryId),
+                category      = catId,
                 levelRequired = 0,
                 customDesc    = item.description or "N/A",
                 weaponInfo    = item.weapon_info or "{}",
@@ -1488,7 +1494,7 @@ end
             itemLabel   = itemLabel,
             itemName    = itemName,
             quantity    = inputQuantity,
-            category_id = tonumber(selectedCategoryId)
+            category_id = catId
         }
 
         if actionType == 'buy' then
